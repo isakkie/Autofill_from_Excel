@@ -1,0 +1,112 @@
+
+
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import Select
+from selenium.webdriver.common.action_chains import ActionChains
+import time
+import xlrd
+import re
+# 登陆页面
+driver = webdriver.Chrome()
+def main():
+    driver.get('后台登陆网址')
+    driver.implicitly_wait(30)
+    driver.maximize_window()
+    name  = driver.find_element_by_xpath('/html/body/div[1]/div/form/div[2]/div/div/input')
+    name.send_keys('登陆账号')
+    password = driver.find_element_by_xpath('/html/body/div[1]/div/form/div[3]/div/div/input')
+    password.send_keys('登陆密码')
+    button = driver.find_element_by_xpath('/html/body/div[1]/div/form/button/span')
+    button.click()
+    time.sleep(0.5)
+    driver.get('商品编辑页网址')
+    time.sleep(2)
+    read_excel()
+
+def read_excel():
+    # 打开文件
+    workBook = xlrd.open_workbook('录入excel.xlsx')
+
+
+    sheet1_content1 = workBook.sheet_by_index(0) # sheet索引从0开始
+    #
+    # ## 2.2 法2：按sheet名字获取sheet内容
+    # sheet1_content2 = workBook.sheet_by_name('单品')
+
+    #print(sheet1_content1.name,sheet1_content1.nrows,sheet1_content1.ncols)
+    for content  in range(1,sheet1_content1.nrows):
+        sanjifenlei = sheet1_content1.cell(content,2).value
+        sanjifenlei = str(sanjifenlei)
+        pinxi_name = sheet1_content1.cell(content,3).value+sheet1_content1.cell(content,2).value+sheet1_content1.cell(content,4).value
+        pinxi_name = str(pinxi_name)
+        pinpai = sheet1_content1.cell(content,3)
+        pinpai = str(pinpai)
+        pinpai = pinpai[6:-1]
+        guanjianzi = sheet1_content1.cell(content,8)
+        guanjianzi = str(guanjianzi)
+        guanjianzi = guanjianzi[6:-1]
+        xiangshi_fen = sheet1_content1.cell(content,6)
+        xiangshi_fen = str(xiangshi_fen)
+        xiangshi_fen = xiangshi_fen[7:-2]
+        shuxing_name =sheet1_content1.cell(content,9)
+        shuxing_name = str(shuxing_name)
+        shuxing_name = shuxing_name[6:-1]
+        shuxing_zhi =sheet1_content1.cell(content,10)
+        shuxing_zhi = str(shuxing_zhi)
+        shuxing_zhi = shuxing_zhi[6:-1]
+        shuxing_zhi = re.sub(r'\\n', '',shuxing_zhi)
+        shuxing_zhi = re.sub(r':', '', shuxing_zhi)
+        shuxing_zhi = re.sub(r'\.', '', shuxing_zhi)
+        try:
+            time.sleep(2)
+            write_content(sanjifenlei,pinxi_name,pinpai,guanjianzi,xiangshi_fen,shuxing_name,shuxing_zhi)
+        except:
+            time.sleep(1)
+            #driver.get('商品编辑页网址')
+            driver.refresh()
+            write_content(sanjifenlei, pinxi_name, pinpai, guanjianzi, xiangshi_fen, shuxing_name, shuxing_zhi)
+        time.sleep(1)
+
+def write_content(fen,pinxi,pinpai,keyword,xiangshi,suname,suzhi):
+    fenlei_name = driver.find_element_by_xpath('/html/body/div[1]/div/div[2]/div/form/div[1]/div/div/div/input')
+    fenlei_name.send_keys(fen)
+    time.sleep(1)
+    fenlei_click = driver.find_element_by_xpath('/html/body/div[2]/div[1]/div[1]/ul/li/span').click()
+
+    pinxi_name = driver.find_element_by_xpath('/html/body/div[1]/div/div[2]/div/form/div[2]/div/div/input')
+    pinxi_name.send_keys(pinxi)
+
+    pinpai_name = driver.find_element_by_xpath('/html/body/div[1]/div/div[2]/div/form/div[4]/div/div/div/input')
+    pinpai_name.send_keys(pinpai)
+    time.sleep(1)
+    pinpai_click = driver.find_element_by_xpath('/html/body/div[3]/div[1]/div[1]/ul/li/span').click()
+
+    keyword_name = driver.find_element_by_xpath('/html/body/div/div/div[2]/div/form/div[7]/div/div/textarea')
+    keyword_name.send_keys(keyword)
+    xiangshi_fen = driver.find_element_by_xpath(
+        '/html/body/div/div/div[2]/div/form/div[11]/div/div/div[2]/div/div/input')
+    xiangshi_fen.send_keys(xiangshi)
+    time.sleep(0.5)
+    shuxing = driver.find_element_by_xpath(
+        '/html/body/div[1]/div/div[2]/div/form/div[12]/div/div/button[1]/span').click()
+    shuxing_name = driver.find_element_by_xpath(
+        '/html/body/div/div/div[2]/div/form/div[13]/div/div/div/div[1]/div[1]/div/div[1]/input')
+    shuxing_name.send_keys(suname)
+
+    shuxing_zhi_click = driver.find_element_by_xpath(
+        '/html/body/div/div/div[2]/div/form/div[13]/div/div/div/div[1]/div[2]/div/div/div/div/button').click()
+    time.sleep(0.5)
+    shuxing_zhi = driver.find_element_by_xpath(
+        '/html/body/div/div/div[2]/div/form/div[13]/div/div/div/div[1]/div[2]/div/div/div[1]/div/div/input')
+    shuxing_zhi.send_keys(suzhi)
+
+    save = driver.find_element_by_xpath('/html/body/div/div/div[2]/div/div[2]/button').click()
+    time.sleep(1)
+    queding = driver.find_element_by_xpath('/html/body/div[4]/div/div[3]/button[2]/span').click()
+    time.sleep(1)
+    time.sleep(2)
+    driver.get('商品编辑页网址')
+    driver.refresh()
+if __name__ == '__main__':
+    main()
